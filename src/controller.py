@@ -88,11 +88,15 @@ class NoteController:
         content = self.ui.text_edit.toPlainText()
         db.update_note(self.current_note_id, title, content)
 
-        # Обновляем название в списке
+        # Обновляем название в списке (внутри кастомного виджета)
         for i in range(self.ui.notes_list.count()):
             item = self.ui.notes_list.item(i)
             if item.data(Qt.ItemDataRole.UserRole) == self.current_note_id:
-                item.setText(title)
+                # Достаем наш кастомный виджет из элемента списка
+                widget = self.ui.notes_list.itemWidget(item)
+                if widget:
+                    # Меняем текст внутри QLabel этого виджета
+                    widget.label.setText(title)
                 break
         self.update_status_bar()
 
