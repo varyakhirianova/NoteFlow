@@ -1,9 +1,45 @@
 import sys
-from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
+from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
                              QSplitter, QListWidget, QLineEdit, QTextEdit,
-                             QStatusBar, QToolBar, QPushButton)
+                             QStatusBar, QToolBar, QPushButton, QLabel)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QAction  # Обязательно импортируем QAction для меню
+
+
+class NoteItemWidget(QWidget):
+    """Кастомный виджет для строки в списке заметок (текст + кнопка удаления)."""
+
+    def __init__(self, note_id, title, parent=None):
+        super().__init__(parent)
+        self.note_id = note_id
+
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(5, 2, 5, 2)
+
+        # Текст заметки
+        self.label = QLabel(title)
+        self.label.setStyleSheet("background: transparent;")
+
+        # Кнопка-крестик
+        self.btn_delete = QPushButton("X") # Используем обычную английскую X
+        self.btn_delete.setFixedSize(30, 30) # Делаем кнопку больше
+        self.btn_delete.setToolTip("Удалить заметку")
+        self.btn_delete.setStyleSheet("""
+            QPushButton {
+                background-color: red;  /* Ярко-красный фон */
+                color: white;
+                border: 1px solid white; /* Белая рамка для контраста */
+                font-weight: bold;
+                font-size: 14px;
+            }
+            QPushButton:hover {
+                background-color: darkred;
+            }
+        """)
+
+        layout.addWidget(self.label)
+        layout.addStretch()  # Прижимаем крестик к правому краю
+        layout.addWidget(self.btn_delete)
 
 
 class NoteFlowWindow(QMainWindow):
@@ -149,11 +185,3 @@ class NoteFlowWindow(QMainWindow):
             }
         """
         self.setStyleSheet(style_sheet)
-
-
-# Этот блок нужен, чтобы можно было запустить и проверить окно отдельно
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = NoteFlowWindow()
-    window.show()
-    sys.exit(app.exec())

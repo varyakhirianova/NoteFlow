@@ -1,6 +1,7 @@
 from PyQt6.QtWidgets import QMessageBox, QListWidgetItem, QListWidget
 from PyQt6.QtCore import Qt
 import database as db
+from ui import NoteItemWidget
 
 
 class NoteController:
@@ -30,6 +31,8 @@ class NoteController:
         self.refresh_notes_list()
 
     def refresh_notes_list(self):
+        print("--- ОБНОВЛЕНИЕ СПИСКА ЗАМЕТОК ---")
+        """Обновляет список заметок в левой панели (с учетом поиска)."""
         self.ui.notes_list.clear()
         search_text = self.ui.search_input.text().lower()
         notes = db.get_all_notes()
@@ -37,9 +40,21 @@ class NoteController:
         for note_id, title in notes:
             if search_text and search_text not in title.lower():
                 continue
-            item = QListWidgetItem(title)
+
+            # Создаем элемент списка
+            item = QListWidgetItem(self.ui.notes_list)
+            # Создаем наш кастомный виджет (текст + крестик)
+            widget = NoteItemWidget(note_id, title)
+
+            # Сохраняем ID заметки
             item.setData(Qt.ItemDataRole.UserRole, note_id)
-            self.ui.notes_list.addItem(item)
+
+            # Устанавливаем размер элемента и помещаем в него виджет
+            item.setSizeHint(widget.sizeHint())
+            self.ui.notes_list.setItemWidget(item, widget)
+
+            # Подключаем крестик к функции удаления
+            widget.btn_delete.clicked.connect(lambda checked, nid=note_id: self.delete_note_by_id(nid))
 
     def create_new_note(self):
         new_id = db.create_note("Новая заметка", "")
@@ -110,5 +125,26 @@ class NoteController:
             self.current_note_id = None
             self.ui.title_input.clear()
             self.ui.text_edit.clear()
+            self.refresh_notes_list()
+            self.ui.status_bar.showMessage("Заметка удалена")
+
+    def delete_note_by_id(self, note_id):
+        """Удаляет заметку по её ID (вызывается при клике на крестик)."""
+        reply = QMessageBox.question(
+            self.ui, 'Удаление',
+            'Вы уверены, что хотите удалить эту заметку?',
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
+        )
+
+        if reply == QMessageBox.StandardButton.Yes:
+            db.delete_note(note_id)
+
+            # Если удалили открытую заметку, очищаем редактор
+            if self.current_note_id == note_id:
+                self.current_note_id = None
+                self.ui.title_input.clear()
+                self.ui.text_edit.clear()
+
             self.refresh_notes_list()
             self.ui.status_bar.showMessage("Заметка удалена")
