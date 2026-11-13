@@ -74,6 +74,8 @@ class NoteController:
                 break
 
     def load_selected_note(self, item):
+        note_id = item.data(Qt.ItemDataRole.UserRole)
+        self.current_note_id = note_id
         note_data = db.get_note_by_id(note_id)
         if note_data:
             # Теперь тут 4 переменные
