@@ -2,6 +2,7 @@ from PyQt6.QtWidgets import QMessageBox, QListWidgetItem, QListWidget
 from PyQt6.QtCore import Qt
 import database as db
 from ui import NoteItemWidget
+from datetime import datetime, timedelta
 
 
 class NoteController:
@@ -120,9 +121,24 @@ class NoteController:
         words = len(text.split())
 
         # Если дата загружена, показываем её, иначе прочерк
-        date_str = self.current_created_at if self.current_created_at else "—"
+        # Если дата загружена, обрабатываем её
+        if self.current_created_at:
+            try:
+                # 1. Превращаем строку из БД в объект datetime
+                # Формат, в котором SQLite хранит дату: "YYYY-MM-DD HH:MM:SS"
+                dt = datetime.strptime(self.current_created_at, "%Y-%m-%d %H:%M:%S")
 
-        # Текст статус-бара
+                # 2. Добавляем 3 часа (для московского времени)
+                dt_local = dt + timedelta(hours=3)
+
+                # 3. Красиво форматируем: "ДД.ММ.ГГГГ ЧЧ:ММ"
+                date_str = dt_local.strftime("%d.%m.%Y %H:%M")
+            except Exception:
+                # Если что-то пошло не так, показываем как есть
+                date_str = self.current_created_at
+        else:
+            date_str = "—"
+
         self.ui.status_bar.showMessage(f"Создано: {date_str} | Символов: {chars} | Слов: {words}")
 
     def list_key_press_event(self, event):
