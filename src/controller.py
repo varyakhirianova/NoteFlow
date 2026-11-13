@@ -10,6 +10,7 @@ class NoteController:
         self.ui = ui_window
         self.current_note_id = None
         self.current_created_at = None
+        self.current_updated_at = None
 
         # Подключение кнопок и событий
         self.ui.btn_new_note.clicked.connect(self.create_new_note)
@@ -61,6 +62,10 @@ class NoteController:
     def create_new_note(self):
         new_id = db.create_note("Новая заметка", "")
         self.refresh_notes_list()
+
+        self.current_created_at = None
+        self.current_updated_at = None
+
         for i in range(self.ui.notes_list.count()):
             item = self.ui.notes_list.item(i)
             if item.data(Qt.ItemDataRole.UserRole) == new_id:
@@ -69,15 +74,12 @@ class NoteController:
                 break
 
     def load_selected_note(self, item):
-        """Загружает выбранную из списка заметку в поля справа."""
-        note_id = item.data(Qt.ItemDataRole.UserRole)
-        self.current_note_id = note_id
-
-        # Теперь получаем три значения из БД
         note_data = db.get_note_by_id(note_id)
         if note_data:
-            title, content, created_at = note_data
-            self.current_created_at = created_at  # Сохраняем дату
+            # Теперь тут 4 переменные
+            title, content, created_at, updated_at = note_data
+            self.current_created_at = created_at
+            self.current_updated_at = updated_at  # Сохраняем дату изменения
 
             # Блокируем сигналы, чтобы автосохранение не сработало в момент загрузки
             self.ui.title_input.blockSignals(True)
@@ -115,31 +117,36 @@ class NoteController:
         self.ui.status_bar.showMessage("Успешно сохранено!", 3000)
 
     def update_status_bar(self):
-        """Обновляет информацию в нижней панели (дата, символы, слова)."""
+        """Обновляет информацию в нижней панели."""
         text = self.ui.text_edit.toPlainText()
         chars = len(text)
         words = len(text.split())
 
-        # Если дата загружена, показываем её, иначе прочерк
-        # Если дата загружена, обрабатываем её
-        if self.current_created_at:
+        # Вспомогательная функция для форматирования времени (прибавляем 3 часа)
+        def format_time(time_str):
+            if not time_str:
+                return "—"
             try:
-                # 1. Превращаем строку из БД в объект datetime
-                # Формат, в котором SQLite хранит дату: "YYYY-MM-DD HH:MM:SS"
-                dt = datetime.strptime(self.current_created_at, "%Y-%m-%d %H:%M:%S")
-
-                # 2. Добавляем 3 часа (для московского времени)
+                # Превращаем строку из БД в дату
+                dt = datetime.strptime(time_str, "%Y-%m-%d %H:%M:%S")
+                # Прибавляем 3 часа (московское время)
                 dt_local = dt + timedelta(hours=3)
-
-                # 3. Красиво форматируем: "ДД.ММ.ГГГГ ЧЧ:ММ"
-                date_str = dt_local.strftime("%d.%m.%Y %H:%M")
+                return dt_local.strftime("%d.%m.%Y %H:%M")
             except Exception:
-                # Если что-то пошло не так, показываем как есть
-                date_str = self.current_created_at
-        else:
-            date_str = "—"
+                return time_str
 
-        self.ui.status_bar.showMessage(f"Создано: {date_str} | Символов: {chars} | Слов: {words}")
+        # Форматируем обе даты
+        created_str = format_time(self.current_created_at)
+        updated_str = format_time(self.current_updated_at)
+
+        # Левая часть: даты создания и изменения
+        date_info = f"Создано: {created_str} | Изменено: {updated_str}"
+
+        # Правая часть: символы и слова
+        stats_info = f"Символов: {chars} | Слов: {words}"
+
+        # Формируем строку с пробелами, чтобы выровнять правую часть
+        self.ui.status_bar.showMessage(f"{date_info} {' ' * 40} {stats_info}")
 
     def list_key_press_event(self, event):
         if event.key() == Qt.Key.Key_Delete:
@@ -158,8 +165,15 @@ class NoteController:
         if reply == QMessageBox.StandardButton.Yes:
             db.delete_note(self.current_note_id)
             self.current_note_id = None
+
+            self.current_created_at = None
+            self.current_updated_at = None
+
+            # Очищаем поля справа
             self.ui.title_input.clear()
             self.ui.text_edit.clear()
+
+            # Обновляем список
             self.refresh_notes_list()
             self.ui.status_bar.showMessage("Заметка удалена")
 
@@ -178,6 +192,10 @@ class NoteController:
             # Если удалили открытую заметку, очищаем редактор
             if self.current_note_id == note_id:
                 self.current_note_id = None
+
+                self.current_created_at = None
+                self.current_updated_at = None
+
                 self.ui.title_input.clear()
                 self.ui.text_edit.clear()
 

@@ -42,8 +42,8 @@ def get_note_by_id(note_id):
     """Возвращает полную информацию о заметке по её ID."""
     conn = get_connection()
     cursor = conn.cursor()
-    # ДОБАВИЛИ created_at в SELECT
-    cursor.execute("SELECT title, content, created_at FROM notes WHERE id = ?", (note_id,))
+    # Добавляем updated_at в SELECT
+    cursor.execute("SELECT title, content, created_at, updated_at FROM notes WHERE id = ?", (note_id,))
     note = cursor.fetchone()
     conn.close()
     return note
