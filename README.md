@@ -12,5 +12,6 @@
 
 1. Клонируйте репозиторий:
    ```bash
-   git clone <ссылка-на-ваш-репозиторий>
+   git clone  https://github.com/varyakhirianova/NoteFlow
+
    cd NoteFlow

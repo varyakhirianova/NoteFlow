@@ -8,6 +8,7 @@ class NoteController:
     def __init__(self, ui_window):
         self.ui = ui_window
         self.current_note_id = None
+        self.current_created_at = None
 
         # Подключение кнопок и событий
         self.ui.btn_new_note.clicked.connect(self.create_new_note)
@@ -67,18 +68,26 @@ class NoteController:
                 break
 
     def load_selected_note(self, item):
+        """Загружает выбранную из списка заметку в поля справа."""
         note_id = item.data(Qt.ItemDataRole.UserRole)
         self.current_note_id = note_id
-        note_data = db.get_note_by_id(note_id)
 
+        # Теперь получаем три значения из БД
+        note_data = db.get_note_by_id(note_id)
         if note_data:
-            title, content = note_data
+            title, content, created_at = note_data
+            self.current_created_at = created_at  # Сохраняем дату
+
+            # Блокируем сигналы, чтобы автосохранение не сработало в момент загрузки
             self.ui.title_input.blockSignals(True)
             self.ui.text_edit.blockSignals(True)
+
             self.ui.title_input.setText(title)
             self.ui.text_edit.setText(content)
+
             self.ui.title_input.blockSignals(False)
             self.ui.text_edit.blockSignals(False)
+
             self.update_status_bar()
 
     def auto_save(self):
@@ -105,10 +114,16 @@ class NoteController:
         self.ui.status_bar.showMessage("Успешно сохранено!", 3000)
 
     def update_status_bar(self):
+        """Обновляет информацию в нижней панели (дата, символы, слова)."""
         text = self.ui.text_edit.toPlainText()
         chars = len(text)
         words = len(text.split())
-        self.ui.status_bar.showMessage(f"Сохранено | Символов: {chars} | Слов: {words}")
+
+        # Если дата загружена, показываем её, иначе прочерк
+        date_str = self.current_created_at if self.current_created_at else "—"
+
+        # Текст статус-бара
+        self.ui.status_bar.showMessage(f"Создано: {date_str} | Символов: {chars} | Слов: {words}")
 
     def list_key_press_event(self, event):
         if event.key() == Qt.Key.Key_Delete:
