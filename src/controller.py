@@ -60,12 +60,15 @@ class NoteController:
             widget.btn_delete.clicked.connect(lambda checked, nid=note_id: self.delete_note_by_id(nid))
 
     def create_new_note(self):
+        """Создает новую пустую заметку."""
+        # ПРИНУДИТЕЛЬНО СОХРАНЯЕМ ТЕКУЩУЮ ЗАМЕТКУ ПЕРЕД СОЗДАНИЕМ НОВОЙ
+        if self.current_note_id is not None:
+            self.auto_save()
+
         new_id = db.create_note("Новая заметка", "")
         self.refresh_notes_list()
 
-        self.current_created_at = None
-        self.current_updated_at = None
-
+        # Выделяем новую заметку в списке
         for i in range(self.ui.notes_list.count()):
             item = self.ui.notes_list.item(i)
             if item.data(Qt.ItemDataRole.UserRole) == new_id:
