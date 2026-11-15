@@ -1,6 +1,6 @@
 import sys
 from PyQt6.QtWidgets import QApplication
-
+from PyQt6.QtWidgets import QApplication
 from database import init_db
 from ui import NoteFlowWindow
 from controller import NoteController  # Импортируем контроллер
@@ -9,7 +9,6 @@ from controller import NoteController  # Импортируем контролл
 def main():
     print("=== Запуск приложения NoteFlow ===")
 
-    init_db()
 
     app = QApplication(sys.argv)
 

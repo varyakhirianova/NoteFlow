@@ -12,11 +12,11 @@ class NoteController:
         self.current_created_at = None
         self.current_updated_at = None
 
-        # Подключение кнопок и событий
+        # 1. Подключаем кнопки и списки к нашим функциям (события)
         self.ui.btn_new_note.clicked.connect(self.create_new_note)
         self.ui.notes_list.itemClicked.connect(self.load_selected_note)
 
-        # Автосохранение
+        # Автосохранение при изменении текста
         self.ui.title_input.textChanged.connect(self.auto_save)
         self.ui.text_edit.textChanged.connect(self.auto_save)
 
@@ -28,10 +28,22 @@ class NoteController:
         self.ui.action_save.triggered.connect(self.force_save)
         self.ui.action_delete.triggered.connect(self.delete_current_note)
 
-        # Удаление по клавише Delete в списке
+        # Подключаем удаление (по нажатию клавиши Delete в списке)
         self.ui.notes_list.keyPressEvent = self.list_key_press_event
 
+        # 2. Загружаем список заметок при старте
         self.refresh_notes_list()
+
+        # --- НОВАЯ ЛОГИКА ДЛЯ СТАРТА ---
+        # Если в базе нет ни одной заметки, создаем первую
+        if self.ui.notes_list.count() == 0:
+            self.create_new_note()
+        else:
+            # Если заметки есть, автоматически выбираем первую (самую свежую)
+            first_item = self.ui.notes_list.item(0)
+            if first_item:
+                self.ui.notes_list.setCurrentItem(first_item)
+                self.load_selected_note(first_item)
 
     def refresh_notes_list(self):
         print("--- ОБНОВЛЕНИЕ СПИСКА ЗАМЕТОК ---")
