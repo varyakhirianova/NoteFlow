@@ -15,6 +15,9 @@ class NoteController:
         # 1. Подключаем кнопки и списки к нашим функциям (события)
         self.ui.btn_new_note.clicked.connect(self.create_new_note)
         self.ui.notes_list.itemClicked.connect(self.load_selected_note)
+        # Подключение кнопок тем
+        self.ui.btn_theme_dark.clicked.connect(self.ui.apply_dark_theme)
+        self.ui.btn_theme_light.clicked.connect(self.ui.apply_light_theme)
 
         # Автосохранение при изменении текста
         self.ui.title_input.textChanged.connect(self.auto_save)
@@ -46,7 +49,6 @@ class NoteController:
                 self.load_selected_note(first_item)
 
     def refresh_notes_list(self):
-        print("--- ОБНОВЛЕНИЕ СПИСКА ЗАМЕТОК ---")
         """Обновляет список заметок в левой панели (с учетом поиска)."""
         self.ui.notes_list.clear()
         search_text = self.ui.search_input.text().lower()

@@ -7,8 +7,6 @@ from controller import NoteController  # Импортируем контролл
 
 
 def main():
-    print("=== Запуск приложения NoteFlow ===")
-
 
     app = QApplication(sys.argv)
 

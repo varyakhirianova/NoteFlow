@@ -1,7 +1,7 @@
 import sys
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
                              QSplitter, QListWidget, QLineEdit, QTextEdit,
-                             QStatusBar, QToolBar, QPushButton, QLabel)
+                             QStatusBar, QToolBar, QPushButton, QLabel, QSizePolicy)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QAction  # Обязательно импортируем QAction для меню
 
@@ -59,10 +59,8 @@ class NoteFlowWindow(QMainWindow):
         self.setCentralWidget(self.central_widget)
         self.main_layout = QVBoxLayout(self.central_widget)
 
-        # =================================================================
         # 4. СОЗДАНИЕ МЕНЮ (Верхняя панель File, Edit, Help)
-        # Именно этого блока не хватало контроллеру!
-        # =================================================================
+
         menubar = self.menuBar()
 
         # Меню File
@@ -85,22 +83,38 @@ class NoteFlowWindow(QMainWindow):
         self.action_delete = QAction('Удалить заметку', self)
         self.action_delete.setShortcut('Delete')
         edit_menu.addAction(self.action_delete)
-        # =================================================================
 
         # 5. Верхняя часть: Тулбар со строкой поиска и кнопкой
         self.toolbar = QToolBar("Основные действия")
         self.toolbar.setMovable(False)
         self.addToolBar(self.toolbar)
 
-        # Строка поиска
+        # 5. Верхняя часть: Тулбар со строкой поиска и кнопкой
+        self.toolbar = QToolBar("Основные действия")
+        self.toolbar.setMovable(False)
+        self.addToolBar(self.toolbar)
+
+        # Строка поиска (увеличили длину до 400)
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText("Поиск по заметкам...")
-        self.search_input.setFixedWidth(300)
+        self.search_input.setFixedWidth(400)
         self.toolbar.addWidget(self.search_input)
 
-        # Кнопка "Новая заметка"
+        # Кнопка "Новая заметка" (сделали чуть шире за счет отступов)
         self.btn_new_note = QPushButton("Новая заметка")
+        self.btn_new_note.setMinimumWidth(130)
         self.toolbar.addWidget(self.btn_new_note)
+
+        # --- НОВЫЕ КНОПКИ ТЕМ ---
+        # Добавляем пустое пространство, чтобы кнопки тем были справа
+        spacer = QWidget()
+        spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        self.toolbar.addWidget(spacer)
+
+        self.btn_theme_dark = QPushButton("🌙 Темная")
+        self.btn_theme_light = QPushButton("☀️ Светлая")
+        self.toolbar.addWidget(self.btn_theme_dark)
+        self.toolbar.addWidget(self.btn_theme_light)
 
         # 6. Центральная часть: QSplitter (разделяет экран на две части)
         self.splitter = QSplitter(Qt.Orientation.Horizontal)
@@ -141,47 +155,46 @@ class NoteFlowWindow(QMainWindow):
         self.status_bar.showMessage("Готово к работе | Символов: 0 | Слов: 0")
 
         # 8. Настройка стилей (CSS) чтобы выглядело современно
-        self.apply_styles()
+        self.apply_dark_theme()
 
-    def apply_styles(self):
-        """Применяет QSS стили для красивого внешнего вида."""
+    def apply_dark_theme(self):
+        """Применяет темную тему."""
         style_sheet = """
-            QMainWindow {
-                background-color: #2b2b2b;
-            }
-            QWidget {
-                color: #ffffff;
-            }
+            QMainWindow { background-color: #2b2b2b; }
+            QWidget { color: #ffffff; }
             QLineEdit, QTextEdit, QListWidget {
-                background-color: #3c3f41;
-                border: 1px solid #555;
-                border-radius: 4px;
-                padding: 5px;
+                background-color: #3c3f41; border: 1px solid #555;
+                border-radius: 4px; padding: 5px;
             }
-            QLineEdit:focus, QTextEdit:focus {
-                border: 1px solid #007acc;
-            }
-            QListWidget::item:selected {
-                background-color: #007acc;
-            }
+            QLineEdit:focus, QTextEdit:focus { border: 1px solid #007acc; }
+            QListWidget::item:selected { background-color: #007acc; }
             QPushButton {
-                background-color: #007acc;
-                color: white;
-                border: none;
-                padding: 6px 12px;
-                border-radius: 4px;
+                background-color: #007acc; color: white;
+                border: none; padding: 6px 12px; border-radius: 4px;
             }
-            QPushButton:hover {
-                background-color: #005999;
+            QPushButton:hover { background-color: #005999; }
+            QToolBar { background-color: #1e1e1e; padding: 5px; spacing: 10px; }
+            QStatusBar { background-color: #1e1e1e; color: #aaaaaa; }
+        """
+        self.setStyleSheet(style_sheet)
+
+    def apply_light_theme(self):
+        """Применяет светлую тему."""
+        style_sheet = """
+            QMainWindow { background-color: #f0f0f0; }
+            QWidget { color: #000000; }
+            QLineEdit, QTextEdit, QListWidget {
+                background-color: #ffffff; border: 1px solid #ccc;
+                border-radius: 4px; padding: 5px; color: #000000;
             }
-            QToolBar {
-                background-color: #1e1e1e;
-                padding: 5px;
-                spacing: 10px;
+            QLineEdit:focus, QTextEdit:focus { border: 1px solid #007acc; }
+            QListWidget::item:selected { background-color: #cce8ff; color: #000000; }
+            QPushButton {
+                background-color: #007acc; color: white;
+                border: none; padding: 6px 12px; border-radius: 4px;
             }
-            QStatusBar {
-                background-color: #1e1e1e;
-                color: #aaaaaa;
-            }
+            QPushButton:hover { background-color: #005999; }
+            QToolBar { background-color: #e0e0e0; padding: 5px; spacing: 10px; }
+            QStatusBar { background-color: #e0e0e0; color: #333333; }
         """
         self.setStyleSheet(style_sheet)
