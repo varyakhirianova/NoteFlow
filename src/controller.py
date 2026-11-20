@@ -15,9 +15,8 @@ class NoteController:
         # 1. Подключаем кнопки и списки к нашим функциям (события)
         self.ui.btn_new_note.clicked.connect(self.create_new_note)
         self.ui.notes_list.itemClicked.connect(self.load_selected_note)
-        # Подключение кнопок тем
-        self.ui.btn_theme_dark.clicked.connect(self.ui.apply_dark_theme)
-        self.ui.btn_theme_light.clicked.connect(self.ui.apply_light_theme)
+        # Подключение кнопки тем
+        self.ui.btn_theme.clicked.connect(self.ui.toggle_theme)
 
         # Автосохранение при изменении текста
         self.ui.title_input.textChanged.connect(self.auto_save)

@@ -111,10 +111,10 @@ class NoteFlowWindow(QMainWindow):
         spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         self.toolbar.addWidget(spacer)
 
-        self.btn_theme_dark = QPushButton("🌙 Темная")
-        self.btn_theme_light = QPushButton("☀️ Светлая")
-        self.toolbar.addWidget(self.btn_theme_dark)
-        self.toolbar.addWidget(self.btn_theme_light)
+        # --- КНОПКА СМЕНЫ ТЕМЫ ---
+        self.btn_theme = QPushButton("☀️ Сменить тему")
+        self.btn_theme.setMinimumWidth(140) # Чтобы текст помещался
+        self.toolbar.addWidget(self.btn_theme)
 
         # 6. Центральная часть: QSplitter (разделяет экран на две части)
         self.splitter = QSplitter(Qt.Orientation.Horizontal)
@@ -198,3 +198,16 @@ class NoteFlowWindow(QMainWindow):
             QStatusBar { background-color: #e0e0e0; color: #333333; }
         """
         self.setStyleSheet(style_sheet)
+
+    def toggle_theme(self):
+        """Переключает тему и обновляет текст кнопки."""
+        # Проверяем, какая тема сейчас активна, по цвету фона окна
+        current_bg = self.palette().color(self.backgroundRole()).name()
+
+        # Если фон темный (примерно #2b2b2b), значит сейчас темная тема
+        if current_bg == "#2b2b2b":
+            self.apply_light_theme()
+            self.btn_theme.setText("🌙 Сменить тему")  # Теперь предлагаем темную
+        else:
+            self.apply_dark_theme()
+            self.btn_theme.setText("☀️ Сменить тему")  # Теперь предлагаем светлую
